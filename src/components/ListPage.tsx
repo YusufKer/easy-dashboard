@@ -6,12 +6,14 @@ interface ListPageProps {
   endpoint: string;
   title: string;
   resourceName: string;
+  detailPathTemplate?: string;
 }
 
 export default function ListPage({
   endpoint,
   title,
   resourceName,
+  detailPathTemplate,
 }: ListPageProps) {
   const {
     items,
@@ -29,15 +31,15 @@ export default function ListPage({
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-gray-600">Loading {resourceName}s...</div>
+        <div className="text-slate-600">Loading {resourceName}s...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
-        <p className="text-red-800">Error: {error}</p>
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p className="text-red-900 font-medium">Error: {error}</p>
       </div>
     );
   }
@@ -48,10 +50,10 @@ export default function ListPage({
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold text-gray-900">{title}</h2>
+        <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm hover:shadow font-medium"
         >
           {showAddForm ? "Cancel" : `Add ${capitalizedResourceName}`}
         </button>
@@ -68,7 +70,7 @@ export default function ListPage({
       )}
 
       {items.length === 0 ? (
-        <p className="text-gray-600">No {resourceName}s found</p>
+        <p className="text-slate-500">No {resourceName}s found</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
@@ -77,6 +79,11 @@ export default function ListPage({
               id={item.id}
               name={item.name}
               onDelete={handleDelete}
+              detailPath={
+                detailPathTemplate
+                  ? detailPathTemplate.replace(":id", item.id.toString())
+                  : undefined
+              }
             />
           ))}
         </div>

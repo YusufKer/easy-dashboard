@@ -20,13 +20,13 @@ export default function AddResourceForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200"
+      className="mb-6 bg-slate-50 p-5 rounded-xl border border-slate-200"
     >
       <div className="flex gap-3 items-end">
         <div className="flex-1">
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-semibold text-slate-700 mb-2"
           >
             {capitalizedResourceName} Name
           </label>
@@ -36,14 +36,14 @@ export default function AddResourceForm({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={`Enter ${resourceName} name`}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             disabled={submitting}
           />
         </div>
         <button
           type="submit"
           disabled={submitting}
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all disabled:bg-slate-400 disabled:cursor-not-allowed font-medium shadow-sm hover:shadow"
         >
           {submitting ? "Adding..." : "Add"}
         </button>

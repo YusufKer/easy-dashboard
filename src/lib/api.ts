@@ -28,6 +28,25 @@ export async function fetchResources(endpoint: string): Promise<Resource[]> {
   return result.data;
 }
 
+export async function fetchResourceById<T>(
+  endpoint: string,
+  id: string
+): Promise<T> {
+  const response = await fetch(`${API_URL}/${endpoint}/${id}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${endpoint}`);
+  }
+
+  const result: ApiResponse<T> = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.message);
+  }
+
+  return result.data;
+}
+
 export async function createResource(
   endpoint: string,
   name: string
