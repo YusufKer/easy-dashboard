@@ -81,3 +81,51 @@ export async function deleteResource(endpoint: string, id: number) {
     throw new Error(`Failed to delete ${endpoint}`);
   }
 }
+
+export async function addFlavourToProtein(
+  proteinId: string,
+  flavourId: number,
+  price: string
+): Promise<void> {
+  const response = await fetch(`${API_URL}/protein/${proteinId}/flavours`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ flavour_id: flavourId, price }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to add flavour to protein");
+  }
+
+  const result: ApiResponse<void> = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.message);
+  }
+}
+
+export async function addCutToProtein(
+  proteinId: string,
+  cutId: number,
+  price: string
+): Promise<void> {
+  const response = await fetch(`${API_URL}/protein/${proteinId}/cuts`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ cut_id: cutId, price }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to add cut to protein");
+  }
+
+  const result: ApiResponse<void> = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.message);
+  }
+}
