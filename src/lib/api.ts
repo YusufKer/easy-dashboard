@@ -106,6 +106,22 @@ export async function addFlavourToProtein(
   }
 }
 
+export async function removeFlavourFromProtein(
+  proteinId: string,
+  flavourId: number
+) {
+  const response = await fetch(`${API_URL}/protein/${proteinId}/flavours`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ flavour_id: flavourId }),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to delete flavour from protein");
+  }
+}
+
 export async function addCutToProtein(
   proteinId: string,
   cutId: number,
@@ -127,5 +143,18 @@ export async function addCutToProtein(
 
   if (!result.success) {
     throw new Error(result.message);
+  }
+}
+
+export async function removeCutFromProtein(proteinId: string, cutId: number) {
+  const response = await fetch(`${API_URL}/protein/${proteinId}/cuts`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ cut_id: cutId }),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to delete cut from protein");
   }
 }

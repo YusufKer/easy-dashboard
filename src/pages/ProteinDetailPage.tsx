@@ -5,6 +5,8 @@ import {
   fetchResources,
   addFlavourToProtein,
   addCutToProtein,
+  removeFlavourFromProtein,
+  removeCutFromProtein,
 } from "@/lib/api";
 
 interface Cut {
@@ -47,10 +49,48 @@ export default function ProteinDetailPage() {
   const [selectedFlavourId, setSelectedFlavourId] = useState<string>("");
   const [flavourPrice, setFlavourPrice] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const [deletingFlavourId, setDeletingFlavourId] = useState<number | null>(
+    null
+  );
+  const [deletingCutId, setDeletingCutId] = useState<number | null>(null);
   const [availableCuts, setAvailableCuts] = useState<AvailableCut[]>([]);
   const [selectedCutId, setSelectedCutId] = useState<string>("");
   const [cutPrice, setCutPrice] = useState<string>("");
   const [submittingCut, setSubmittingCut] = useState(false);
+
+  const handleDeleteCut = async (cutId: number) => {
+    if (!id) return;
+    setDeletingCutId(cutId);
+    try {
+      await removeCutFromProtein(id, cutId);
+      setProtein((prev) =>
+        prev ? { ...prev, cuts: prev.cuts.filter((c) => c.id !== cutId) } : prev
+      );
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to delete cut");
+    } finally {
+      setDeletingCutId(null);
+    }
+  };
+  const handleDeleteFlavour = async (flavourId: number) => {
+    if (!id) return;
+    setDeletingFlavourId(flavourId);
+    try {
+      await removeFlavourFromProtein(id, flavourId);
+      setProtein((prev) =>
+        prev
+          ? {
+              ...prev,
+              flavours: prev.flavours.filter((f) => f.id !== flavourId),
+            }
+          : prev
+      );
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to delete flavour");
+    } finally {
+      setDeletingFlavourId(null);
+    }
+  };
 
   useEffect(() => {
     const fetchProtein = async () => {
@@ -264,7 +304,7 @@ export default function ProteinDetailPage() {
                 {protein.cuts.map((cut) => (
                   <div
                     key={cut.id}
-                    className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-md transition-all hover:border-indigo-200"
+                    className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-md transition-all hover:border-indigo-200 flex flex-col gap-2"
                   >
                     <h3 className="font-semibold text-slate-900 capitalize">
                       {cut.name}
@@ -272,6 +312,13 @@ export default function ProteinDetailPage() {
                     <p className="text-sm text-emerald-600 font-semibold mt-2">
                       ${cut.price}
                     </p>
+                    <button
+                      className="mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs self-start disabled:opacity-50"
+                      onClick={() => handleDeleteCut(cut.id)}
+                      disabled={deletingCutId === cut.id}
+                    >
+                      {deletingCutId === cut.id ? "Deleting..." : "Delete"}
+                    </button>
                   </div>
                 ))}
               </div>
@@ -349,7 +396,7 @@ export default function ProteinDetailPage() {
                 {protein.flavours.map((flavour) => (
                   <div
                     key={flavour.id}
-                    className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-md transition-all hover:border-indigo-200"
+                    className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-md transition-all hover:border-indigo-200 flex flex-col gap-2"
                   >
                     <h3 className="font-semibold text-slate-900 capitalize">
                       {flavour.name}
@@ -357,6 +404,15 @@ export default function ProteinDetailPage() {
                     <p className="text-sm text-emerald-600 font-semibold mt-2">
                       ${flavour.price}
                     </p>
+                    <button
+                      className="mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs self-start disabled:opacity-50"
+                      onClick={() => handleDeleteFlavour(flavour.id)}
+                      disabled={deletingFlavourId === flavour.id}
+                    >
+                      {deletingFlavourId === flavour.id
+                        ? "Deleting..."
+                        : "Delete"}
+                    </button>
                   </div>
                 ))}
               </div>
