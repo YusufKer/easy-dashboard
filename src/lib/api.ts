@@ -158,3 +158,57 @@ export async function removeCutFromProtein(proteinId: string, cutId: number) {
     throw new Error("Failed to delete cut from protein");
   }
 }
+
+export async function updateFlavourPrice(
+  proteinId: string,
+  flavourId: number,
+  price: string
+): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/protein/${proteinId}/flavours/${flavourId}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ price }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to update flavour price");
+  }
+
+  const result: ApiResponse<void> = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.message);
+  }
+}
+
+export async function updateCutPrice(
+  proteinId: string,
+  cutId: number,
+  price: string
+): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/protein/${proteinId}/cuts/${cutId}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ price }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to update cut price");
+  }
+
+  const result: ApiResponse<void> = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.message);
+  }
+}

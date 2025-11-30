@@ -7,7 +7,11 @@ import {
   addCutToProtein,
   removeFlavourFromProtein,
   removeCutFromProtein,
+  updateFlavourPrice,
+  updateCutPrice,
 } from "@/lib/api";
+import CutCard from "@/components/CutCard";
+import FlavourCard from "@/components/FlavourCard";
 
 interface Cut {
   id: number;
@@ -57,6 +61,10 @@ export default function ProteinDetailPage() {
   const [selectedCutId, setSelectedCutId] = useState<string>("");
   const [cutPrice, setCutPrice] = useState<string>("");
   const [submittingCut, setSubmittingCut] = useState(false);
+  const [updatingFlavourId, setUpdatingFlavourId] = useState<number | null>(
+    null
+  );
+  const [updatingCutId, setUpdatingCutId] = useState<number | null>(null);
 
   const handleDeleteCut = async (cutId: number) => {
     if (!id) return;
@@ -89,6 +97,55 @@ export default function ProteinDetailPage() {
       alert(err instanceof Error ? err.message : "Failed to delete flavour");
     } finally {
       setDeletingFlavourId(null);
+    }
+  };
+
+  const handleUpdateFlavourPrice = async (
+    flavourId: number,
+    newPrice: string
+  ) => {
+    if (!id || !newPrice) return;
+    setUpdatingFlavourId(flavourId);
+    try {
+      await updateFlavourPrice(id, flavourId, newPrice);
+      setProtein((prev) =>
+        prev
+          ? {
+              ...prev,
+              flavours: prev.flavours.map((f) =>
+                f.id === flavourId ? { ...f, price: newPrice } : f
+              ),
+            }
+          : prev
+      );
+    } catch (err) {
+      alert(
+        err instanceof Error ? err.message : "Failed to update flavour price"
+      );
+    } finally {
+      setUpdatingFlavourId(null);
+    }
+  };
+
+  const handleUpdateCutPrice = async (cutId: number, newPrice: string) => {
+    if (!id || !newPrice) return;
+    setUpdatingCutId(cutId);
+    try {
+      await updateCutPrice(id, cutId, newPrice);
+      setProtein((prev) =>
+        prev
+          ? {
+              ...prev,
+              cuts: prev.cuts.map((c) =>
+                c.id === cutId ? { ...c, price: newPrice } : c
+              ),
+            }
+          : prev
+      );
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to update cut price");
+    } finally {
+      setUpdatingCutId(null);
     }
   };
 
@@ -302,24 +359,14 @@ export default function ProteinDetailPage() {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {protein.cuts.map((cut) => (
-                  <div
+                  <CutCard
                     key={cut.id}
-                    className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-md transition-all hover:border-indigo-200 flex flex-col gap-2"
-                  >
-                    <h3 className="font-semibold text-slate-900 capitalize">
-                      {cut.name}
-                    </h3>
-                    <p className="text-sm text-emerald-600 font-semibold mt-2">
-                      ${cut.price}
-                    </p>
-                    <button
-                      className="mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs self-start disabled:opacity-50"
-                      onClick={() => handleDeleteCut(cut.id)}
-                      disabled={deletingCutId === cut.id}
-                    >
-                      {deletingCutId === cut.id ? "Deleting..." : "Delete"}
-                    </button>
-                  </div>
+                    cut={cut}
+                    onUpdate={handleUpdateCutPrice}
+                    onDelete={handleDeleteCut}
+                    isDeleting={deletingCutId === cut.id}
+                    isUpdating={updatingCutId === cut.id}
+                  />
                 ))}
               </div>
             )}
@@ -394,26 +441,14 @@ export default function ProteinDetailPage() {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {protein.flavours.map((flavour) => (
-                  <div
+                  <FlavourCard
                     key={flavour.id}
-                    className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-md transition-all hover:border-indigo-200 flex flex-col gap-2"
-                  >
-                    <h3 className="font-semibold text-slate-900 capitalize">
-                      {flavour.name}
-                    </h3>
-                    <p className="text-sm text-emerald-600 font-semibold mt-2">
-                      ${flavour.price}
-                    </p>
-                    <button
-                      className="mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs self-start disabled:opacity-50"
-                      onClick={() => handleDeleteFlavour(flavour.id)}
-                      disabled={deletingFlavourId === flavour.id}
-                    >
-                      {deletingFlavourId === flavour.id
-                        ? "Deleting..."
-                        : "Delete"}
-                    </button>
-                  </div>
+                    flavour={flavour}
+                    onUpdate={handleUpdateFlavourPrice}
+                    onDelete={handleDeleteFlavour}
+                    isDeleting={deletingFlavourId === flavour.id}
+                    isUpdating={updatingFlavourId === flavour.id}
+                  />
                 ))}
               </div>
             )}
