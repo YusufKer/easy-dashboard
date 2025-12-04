@@ -6,6 +6,7 @@ import CutsPage from "@/pages/CutsPage";
 import FlavoursPage from "@/pages/FlavoursPage";
 import RegisterPage from "@/pages/RegisterPage";
 import LoginPage from "@/pages/LoginPage";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 function App() {
   return (
@@ -13,7 +14,14 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/" element={<Layout />}>
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Navigate to="/protein" replace />} />
           <Route path="protein" element={<ProteinPage />} />
           <Route path="protein/:id" element={<ProteinDetailPage />} />

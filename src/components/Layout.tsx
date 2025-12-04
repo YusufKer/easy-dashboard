@@ -1,7 +1,15 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 export default function Layout() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -11,7 +19,7 @@ export default function Layout() {
             <div className="flex items-center">
               <h1 className="text-xl font-bold text-slate-900">Dashboard</h1>
             </div>
-            <div className="flex space-x-1">
+            <div className="flex items-center space-x-1">
               <Link
                 to="/protein"
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -42,6 +50,12 @@ export default function Layout() {
               >
                 Flavours
               </Link>
+              <button
+                onClick={handleLogout}
+                className="ml-4 px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-700 hover:bg-red-50 hover:text-red-700 border border-slate-200"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
