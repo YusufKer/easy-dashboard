@@ -12,24 +12,106 @@ interface Resource {
   name: string;
 }
 
-// Helper function to get authorization headers
-function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem("accessToken");
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
+// Token refresh flag to prevent multiple simultaneous refresh attempts
+let isRefreshing = false;
+let refreshPromise: Promise<string | null> | null = null;
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+// Refresh the access token using the refresh token
+async function refreshAccessToken(): Promise<string | null> {
+  if (isRefreshing && refreshPromise) {
+    return refreshPromise;
   }
 
-  return headers;
+  isRefreshing = true;
+  refreshPromise = (async () => {
+    try {
+      const refreshToken = localStorage.getItem("refreshToken");
+
+      if (!refreshToken) {
+        return null;
+      }
+
+      const response = await fetch(`${AUTH_URL}/refresh`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (!response.ok) {
+        // Refresh failed - clear tokens and redirect to login
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+        return null;
+      }
+
+      const result: ApiResponse<LoginResponse> = await response.json();
+
+      if (!result.success) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+        return null;
+      }
+
+      // Store new tokens
+      localStorage.setItem("accessToken", result.data.accessToken);
+      localStorage.setItem("refreshToken", result.data.refreshToken);
+
+      return result.data.accessToken;
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+      return null;
+    } finally {
+      isRefreshing = false;
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
+
+// Helper function to make authenticated requests with automatic token refresh
+async function authenticatedFetch(
+  url: string,
+  options: RequestInit = {}
+): Promise<Response> {
+  const token = localStorage.getItem("accessToken");
+
+  // Add Authorization header
+  const headers = new Headers(options.headers);
+  headers.set("Content-Type", "application/json");
+
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  let response = await fetch(url, { ...options, headers });
+
+  // If unauthorized, try to refresh token and retry
+  if (response.status === 401) {
+    const newToken = await refreshAccessToken();
+
+    if (newToken) {
+      // Retry with new token
+      headers.set("Authorization", `Bearer ${newToken}`);
+      response = await fetch(url, { ...options, headers });
+    }
+  }
+
+  return response;
 }
 
 export async function fetchResources(endpoint: string): Promise<Resource[]> {
-  const response = await fetch(`${API_URL}/${endpoint}`, {
-    headers: getAuthHeaders(),
-  });
+  const response = await authenticatedFetch(`${API_URL}/${endpoint}`);
 
   if (!response.ok) {
     throw new Error(`Failed to fetch ${endpoint}`);
@@ -48,9 +130,7 @@ export async function fetchResourceById<T>(
   endpoint: string,
   id: string
 ): Promise<T> {
-  const response = await fetch(`${API_URL}/${endpoint}/${id}`, {
-    headers: getAuthHeaders(),
-  });
+  const response = await authenticatedFetch(`${API_URL}/${endpoint}/${id}`);
 
   if (!response.ok) {
     throw new Error(`Failed to fetch ${endpoint}`);
@@ -69,9 +149,8 @@ export async function createResource(
   endpoint: string,
   name: string
 ): Promise<Resource> {
-  const response = await fetch(`${API_URL}/${endpoint}`, {
+  const response = await authenticatedFetch(`${API_URL}/${endpoint}`, {
     method: "POST",
-    headers: getAuthHeaders(),
     body: JSON.stringify({ name }),
   });
 
@@ -89,9 +168,8 @@ export async function createResource(
 }
 
 export async function deleteResource(endpoint: string, id: number) {
-  const response = await fetch(`${API_URL}/${endpoint}/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/${endpoint}/${id}`, {
     method: "DELETE",
-    headers: getAuthHeaders(),
   });
 
   if (!response.ok) {
@@ -104,11 +182,13 @@ export async function addFlavourToProtein(
   flavourId: number,
   price: string
 ): Promise<void> {
-  const response = await fetch(`${API_URL}/protein/${proteinId}/flavours`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ flavour_id: flavourId, price }),
-  });
+  const response = await authenticatedFetch(
+    `${API_URL}/protein/${proteinId}/flavours`,
+    {
+      method: "POST",
+      body: JSON.stringify({ flavour_id: flavourId, price }),
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to add flavour to protein");
@@ -125,11 +205,13 @@ export async function removeFlavourFromProtein(
   proteinId: string,
   flavourId: number
 ) {
-  const response = await fetch(`${API_URL}/protein/${proteinId}/flavours`, {
-    method: "DELETE",
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ flavour_id: flavourId }),
-  });
+  const response = await authenticatedFetch(
+    `${API_URL}/protein/${proteinId}/flavours`,
+    {
+      method: "DELETE",
+      body: JSON.stringify({ flavour_id: flavourId }),
+    }
+  );
   if (!response.ok) {
     throw new Error("Failed to delete flavour from protein");
   }
@@ -140,11 +222,13 @@ export async function addCutToProtein(
   cutId: number,
   price: string
 ): Promise<void> {
-  const response = await fetch(`${API_URL}/protein/${proteinId}/cuts`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ cut_id: cutId, price }),
-  });
+  const response = await authenticatedFetch(
+    `${API_URL}/protein/${proteinId}/cuts`,
+    {
+      method: "POST",
+      body: JSON.stringify({ cut_id: cutId, price }),
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to add cut to protein");
@@ -158,11 +242,13 @@ export async function addCutToProtein(
 }
 
 export async function removeCutFromProtein(proteinId: string, cutId: number) {
-  const response = await fetch(`${API_URL}/protein/${proteinId}/cuts`, {
-    method: "DELETE",
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ cut_id: cutId }),
-  });
+  const response = await authenticatedFetch(
+    `${API_URL}/protein/${proteinId}/cuts`,
+    {
+      method: "DELETE",
+      body: JSON.stringify({ cut_id: cutId }),
+    }
+  );
   if (!response.ok) {
     throw new Error("Failed to delete cut from protein");
   }
@@ -173,11 +259,10 @@ export async function updateFlavourPrice(
   flavourId: number,
   price: string
 ): Promise<void> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/protein/${proteinId}/flavours/${flavourId}`,
     {
       method: "PUT",
-      headers: getAuthHeaders(),
       body: JSON.stringify({ price }),
     }
   );
@@ -198,11 +283,10 @@ export async function updateCutPrice(
   cutId: number,
   price: string
 ): Promise<void> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/protein/${proteinId}/cuts/${cutId}`,
     {
       method: "PUT",
-      headers: getAuthHeaders(),
       body: JSON.stringify({ price }),
     }
   );
