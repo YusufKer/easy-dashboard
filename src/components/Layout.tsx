@@ -1,12 +1,13 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { logoutUser } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
-    await logoutUser();
+    await logout();
     navigate("/login");
   };
 

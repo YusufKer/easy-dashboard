@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface RegisterFormProps {
   onRegisterSuccess?: () => void;
 }
 
 export default function RegisterForm({ onRegisterSuccess }: RegisterFormProps) {
+  const { register } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -36,8 +38,7 @@ export default function RegisterForm({ onRegisterSuccess }: RegisterFormProps) {
     setSubmitting(true);
 
     try {
-      const { registerUser } = await import("@/lib/api");
-      await registerUser({
+      await register({
         email: formData.email,
         password: formData.password,
       });

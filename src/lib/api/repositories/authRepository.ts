@@ -6,6 +6,7 @@ import type {
   LoginUserData,
   LoginResponse,
 } from "@/lib/api/types";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 class AuthRepository {
   async register(userData: RegisterUserData): Promise<RegisterResponse> {
@@ -55,7 +56,7 @@ class AuthRepository {
   }
 
   async logout(): Promise<void> {
-    const refreshToken = localStorage.getItem("refreshToken");
+    const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
 
     if (!refreshToken) {
       return;
@@ -73,9 +74,9 @@ class AuthRepository {
       console.error("Logout request failed:", error);
     } finally {
       // Always clear local storage regardless of API response
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("user");
+      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER);
     }
   }
 }

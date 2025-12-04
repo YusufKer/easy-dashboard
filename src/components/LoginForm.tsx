@@ -1,19 +1,12 @@
 import { useState } from "react";
-
-interface User {
-  id: number;
-  email: string;
-  role: string;
-  is_active: number;
-  created_at: string;
-  updated_at: string;
-}
+import { useAuth } from "@/hooks/useAuth";
 
 interface LoginFormProps {
-  onLoginSuccess?: (accessToken: string, user: User) => void;
+  onLoginSuccess?: () => void;
 }
 
 export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -34,16 +27,10 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
     setSubmitting(true);
 
     try {
-      const { loginUser } = await import("@/lib/api");
-      const response = await loginUser({
+      await login({
         email: formData.email,
         password: formData.password,
       });
-
-      // Store tokens in localStorage
-      localStorage.setItem("accessToken", response.accessToken);
-      localStorage.setItem("refreshToken", response.refreshToken);
-      localStorage.setItem("user", JSON.stringify(response.user));
 
       // Clear form on success
       setFormData({
@@ -52,7 +39,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
       });
 
       if (onLoginSuccess) {
-        onLoginSuccess(response.accessToken, response.user);
+        onLoginSuccess();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to login");

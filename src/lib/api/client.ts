@@ -1,5 +1,6 @@
 import { AUTH_URL } from "@/config/env";
 import type { ApiResponse, LoginResponse } from "@/lib/api/types";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 // Token refresh flag to prevent multiple simultaneous refresh attempts
 let isRefreshing = false;
@@ -14,7 +15,7 @@ async function refreshAccessToken(): Promise<string | null> {
   isRefreshing = true;
   refreshPromise = (async () => {
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
+      const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
 
       if (!refreshToken) {
         return null;
@@ -30,9 +31,9 @@ async function refreshAccessToken(): Promise<string | null> {
 
       if (!response.ok) {
         // Refresh failed - clear tokens and redirect to login
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER);
         window.location.href = "/login";
         return null;
       }
@@ -40,23 +41,26 @@ async function refreshAccessToken(): Promise<string | null> {
       const result: ApiResponse<LoginResponse> = await response.json();
 
       if (!result.success) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER);
         window.location.href = "/login";
         return null;
       }
 
       // Store new tokens
-      localStorage.setItem("accessToken", result.data.accessToken);
-      localStorage.setItem("refreshToken", result.data.refreshToken);
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, result.data.accessToken);
+      localStorage.setItem(
+        STORAGE_KEYS.REFRESH_TOKEN,
+        result.data.refreshToken
+      );
 
       return result.data.accessToken;
     } catch (error) {
       console.error("Token refresh failed:", error);
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("user");
+      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER);
       window.location.href = "/login";
       return null;
     } finally {
@@ -73,7 +77,7 @@ export async function authenticatedFetch(
   url: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  const token = localStorage.getItem("accessToken");
+  const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
 
   // Add Authorization header
   const headers = new Headers(options.headers);
