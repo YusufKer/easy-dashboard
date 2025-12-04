@@ -384,3 +384,28 @@ export async function loginUser(
 
   return result.data;
 }
+
+export async function logoutUser(): Promise<void> {
+  const refreshToken = localStorage.getItem("refreshToken");
+  
+  if (!refreshToken) {
+    return;
+  }
+
+  try {
+    await fetch(`${AUTH_URL}/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ refreshToken }),
+    });
+  } catch (error) {
+    console.error("Logout request failed:", error);
+  } finally {
+    // Always clear local storage regardless of API response
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+  }
+}

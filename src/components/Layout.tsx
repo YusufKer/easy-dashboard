@@ -1,13 +1,12 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { logoutUser } from "@/lib/api";
 
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
+  const handleLogout = async () => {
+    await logoutUser();
     navigate("/login");
   };
 
