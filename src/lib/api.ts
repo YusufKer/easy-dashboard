@@ -1,4 +1,4 @@
-import { API_URL } from "@/config/env";
+import { API_URL, AUTH_URL } from "@/config/env";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -211,4 +211,87 @@ export async function updateCutPrice(
   if (!result.success) {
     throw new Error(result.message);
   }
+}
+
+// Authentication
+interface RegisterUserData {
+  email: string;
+  password: string;
+}
+
+interface RegisterResponse {
+  id: number;
+  username: string;
+  email: string;
+}
+
+interface LoginUserData {
+  email: string;
+  password: string;
+}
+
+interface User {
+  id: number;
+  email: string;
+  role: string;
+  is_active: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface LoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: User;
+  expiresIn: number;
+}
+
+export async function registerUser(
+  userData: RegisterUserData
+): Promise<RegisterResponse> {
+  const response = await fetch(`${AUTH_URL}/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(userData),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to register user");
+  }
+
+  const result: ApiResponse<RegisterResponse> = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.message);
+  }
+
+  return result.data;
+}
+
+export async function loginUser(
+  credentials: LoginUserData
+): Promise<LoginResponse> {
+  const response = await fetch(`${AUTH_URL}/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(credentials),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to login");
+  }
+
+  const result: ApiResponse<LoginResponse> = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.message);
+  }
+
+  return result.data;
 }
