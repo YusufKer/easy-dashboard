@@ -12,8 +12,24 @@ interface Resource {
   name: string;
 }
 
+// Helper function to get authorization headers
+function getAuthHeaders(): HeadersInit {
+  const token = localStorage.getItem("accessToken");
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  return headers;
+}
+
 export async function fetchResources(endpoint: string): Promise<Resource[]> {
-  const response = await fetch(`${API_URL}/${endpoint}`);
+  const response = await fetch(`${API_URL}/${endpoint}`, {
+    headers: getAuthHeaders(),
+  });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch ${endpoint}`);
@@ -32,7 +48,9 @@ export async function fetchResourceById<T>(
   endpoint: string,
   id: string
 ): Promise<T> {
-  const response = await fetch(`${API_URL}/${endpoint}/${id}`);
+  const response = await fetch(`${API_URL}/${endpoint}/${id}`, {
+    headers: getAuthHeaders(),
+  });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch ${endpoint}`);
@@ -53,9 +71,7 @@ export async function createResource(
 ): Promise<Resource> {
   const response = await fetch(`${API_URL}/${endpoint}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ name }),
   });
 
@@ -75,6 +91,7 @@ export async function createResource(
 export async function deleteResource(endpoint: string, id: number) {
   const response = await fetch(`${API_URL}/${endpoint}/${id}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
   });
 
   if (!response.ok) {
@@ -89,9 +106,7 @@ export async function addFlavourToProtein(
 ): Promise<void> {
   const response = await fetch(`${API_URL}/protein/${proteinId}/flavours`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ flavour_id: flavourId, price }),
   });
 
@@ -112,9 +127,7 @@ export async function removeFlavourFromProtein(
 ) {
   const response = await fetch(`${API_URL}/protein/${proteinId}/flavours`, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ flavour_id: flavourId }),
   });
   if (!response.ok) {
@@ -129,9 +142,7 @@ export async function addCutToProtein(
 ): Promise<void> {
   const response = await fetch(`${API_URL}/protein/${proteinId}/cuts`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ cut_id: cutId, price }),
   });
 
@@ -149,9 +160,7 @@ export async function addCutToProtein(
 export async function removeCutFromProtein(proteinId: string, cutId: number) {
   const response = await fetch(`${API_URL}/protein/${proteinId}/cuts`, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ cut_id: cutId }),
   });
   if (!response.ok) {
@@ -168,9 +177,7 @@ export async function updateFlavourPrice(
     `${API_URL}/protein/${proteinId}/flavours/${flavourId}`,
     {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ price }),
     }
   );
@@ -195,9 +202,7 @@ export async function updateCutPrice(
     `${API_URL}/protein/${proteinId}/cuts/${cutId}`,
     {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ price }),
     }
   );
