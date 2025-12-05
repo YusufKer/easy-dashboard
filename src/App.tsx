@@ -6,6 +6,7 @@ import CutsPage from "@/pages/CutsPage";
 import FlavoursPage from "@/pages/FlavoursPage";
 import RegisterPage from "@/pages/RegisterPage";
 import LoginPage from "@/pages/LoginPage";
+import LogsPage from "@/pages/LogsPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
           <Route path="protein/:id" element={<ProteinDetailPage />} />
           <Route path="cuts" element={<CutsPage />} />
           <Route path="flavours" element={<FlavoursPage />} />
+          <Route path="logs" element={<LogsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

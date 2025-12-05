@@ -50,6 +50,16 @@ export default function Layout() {
               >
                 Flavours
               </Link>
+              <Link
+                to="/logs"
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  location.pathname === "/logs"
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                Logs
+              </Link>
               <button
                 onClick={handleLogout}
                 className="ml-4 px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-700 hover:bg-red-50 hover:text-red-700 border border-slate-200"
